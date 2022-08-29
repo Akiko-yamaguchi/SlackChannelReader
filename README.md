@@ -29,7 +29,7 @@ Dump to CSV.
 
 ```python
 serializer = MessageSerializer()
-serializer.dump_csv(msgs, "dump.csv")
+serializer.dump_csv(messages, "dump.csv")
 ```
 
 # TODO
