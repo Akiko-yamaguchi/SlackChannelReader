@@ -1,0 +1,3 @@
+# SlackChannelReader
+
+TODO documents
