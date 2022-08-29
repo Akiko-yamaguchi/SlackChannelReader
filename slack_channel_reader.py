@@ -19,8 +19,6 @@
 import json
 import csv
 from datetime import datetime
-import sys
-import os
 from urllib.request import Request, urlopen
 from typing import List 
 
