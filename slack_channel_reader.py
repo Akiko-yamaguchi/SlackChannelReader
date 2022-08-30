@@ -61,7 +61,11 @@ class Message:
 
 class TopMessage(Message):
     def __init__(self, raw: dict):
-        super(TopMessage, self).__init__(raw["text"], raw["user"], raw["ts"])
+        super(TopMessage, self).__init__(
+            raw.get("text", ""),
+            raw.get("user", ""),
+            raw["ts"]
+        )
         self.reply_count = raw.get("reply_count", 0)
         self.reply_users_count = raw.get("reply_users_count", 0)
         self.thread_ts = raw.get("thread_ts")
