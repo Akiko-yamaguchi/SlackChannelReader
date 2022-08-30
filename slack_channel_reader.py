@@ -37,6 +37,11 @@ class SlackApi:
         response = urlopen(Request(url, headers=self.__headers()))
         return json.loads(response.read().decode())
 
+    def users_list(self) -> dict:
+        url = f"https://slack.com/api/users.list"
+        response = urlopen(Request(url, headers=self.__headers()))
+        return json.loads(response.read().decode())
+
     def __headers(self) -> dict:
         return {
             'Authorization': f"Bearer {self._token}",
@@ -103,11 +108,13 @@ class SlackChannelReader:
         self._limit = limit
         self._api = SlackApi(token)
 
-    def read(self) -> List[TopMessage]:
+    def read(self, replace_usr_name = True) -> List[TopMessage]:
         history = self._api.conversations_history(self._channel_id, self._limit)
         top_messages = [TopMessage(raw) for raw in history["messages"]]
         for mes in top_messages:
             self.__merge_thread_messages(mes)
+        if replace_usr_name:
+            self.__replace_user_name(top_messages)
         return top_messages
 
     def __merge_thread_messages(self, top_message: TopMessage):
@@ -118,6 +125,23 @@ class SlackChannelReader:
             top_message.thread_messages.extend(
                 Message(raw["text"], raw["user"], raw["ts"]) for raw in replies["messages"]
             )
+
+    def __replace_user_name(self, top_messages: List[TopMessage]):
+        response = self._api.users_list()
+        if not response["ok"]:
+            return
+        users = dict(
+            (raw_user["id"], raw_user.get("real_name", raw_user["name"]))
+            for raw_user in response["members"]
+        )
+
+        for top_message in top_messages:
+            if top_message.user:
+                if top_message.user in users:
+                    top_message.user = users[top_message.user]
+            for tm in top_message.thread_messages:
+                if tm.user in users:
+                    tm.user = users[tm.user]
 
 
 class MessageSerializer:
